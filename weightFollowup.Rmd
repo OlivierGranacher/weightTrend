@@ -1,0 +1,44 @@
+---
+title: "Body weight follow up"
+author: "OG"
+date: "8/15/2020"
+output: html_document
+---
+
+```{r setup, include=T, echo= F}
+knitr::opts_chunk$set(echo = F, eval = T)
+library(tidyverse, quietly = T)
+library(lubridate, quietly = T)
+# loads data from export file in Download folder and creates rds file
+source("R/appleHealthDataXMLimport.R")
+theme_set(theme_light())
+
+```
+
+
+```{r tidy_data}
+# reads saved df
+df <- readRDS("data/health.rds") %>% filter(unit == "kg")
+
+# skimr::skim(df)
+df <- df %>% 
+  mutate(year = year(startDate), mois = factor(month(startDate))) %>% 
+  mutate(startDate = ymd_hms(stringr::str_sub(startDate, 1, 19)))
+```
+
+## Evolution par mois
+
+```{r plot_mois, include=T}
+df %>% 
+  ggplot(aes(x = startDate, y = value)) + 
+  geom_point(color = "seagreen")  +
+  scale_x_datetime(date_breaks = "6 month", date_labels = "%Y %b") +
+  theme(axis.text.x = element_text(angle = 90)) -> p
+
+plotly::ggplotly()
+```
+
+```{r model_mois}
+
+```
+
