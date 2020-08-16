@@ -22,8 +22,8 @@ df <- readRDS("data/health.rds") %>% filter(unit == "kg")
 
 # skimr::skim(df)
 df <- df %>% 
-  mutate(year = year(startDate), mois = factor(month(startDate))) %>% 
-  mutate(startDate = ymd_hms(stringr::str_sub(startDate, 1, 19)))
+  mutate(startDate = ymd_hms(stringr::str_sub(startDate, 1, 19))) %>% 
+  mutate(year = factor(year(startDate)), month = factor(month(startDate)))
 ```
 
 ## Evolution par mois
@@ -38,7 +38,24 @@ df %>%
 plotly::ggplotly()
 ```
 
-```{r model_mois}
+```{r model_month}
+mod_month <- lm(formula = "value ~ month", data = df)
+summary(mod_month)
+df$pred_month <- predict(mod_month)
+df <- df %>%  mutate(res_month = value - pred_month)  
+ggplot(df, aes(x = startDate, y = res_month)) +
+  geom_point(color = "darkblue") + labs(title = " Résidus modèle mois") +
+scale_x_datetime(date_breaks = "6 month", date_labels = "%Y %b") +
+  theme(axis.text.x = element_text(angle = 90)) -> p
+plotly::ggplotly()
+```
 
+```{r model_year}
+mod_year <- lm(formula = "value ~ year", data = df)
+summary(mod_year)
+df$pred_year <- predict(mod_year)
+broom::tidy(mod_year)
+ggplot(data = df, aes(startDate, pred_year)) + geom_line() + scale_x_datetime(date_breaks = "1 year", date_labels = "%Y")
+plotly::ggplotly()
 ```
 
